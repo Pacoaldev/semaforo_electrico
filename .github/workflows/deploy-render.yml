@@ -1,0 +1,20 @@
+name: Desplegar en Render
+
+# Despliega automáticamente en Render cada vez que se hace push a main.
+# Usa el "Deploy Hook" de Render (secreto RENDER_DEPLOY_HOOK).
+#
+# Esto sustituye al auto-deploy nativo de Render, que depende de un webhook
+# de GitHub que puede no estar configurado/autorizado.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {} # Permite lanzarlo a mano desde la pestaña Actions
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al Deploy Hook de Render
+        run: |
+          curl --fail --show-error --silent "${{ secrets.RENDER_DEPLOY_HOOK }}" || exit 1
