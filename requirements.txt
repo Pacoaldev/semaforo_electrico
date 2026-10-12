@@ -1,18 +1,26 @@
-asgiref==3.8.1
-beautifulsoup4==4.13.4
-certifi==2025.4.26
-charset-normalizer==3.4.2
-Django==5.2.1
-djangorestframework==3.16.0
-esios==0.25.0
-idna==3.10
-libsaas==0.4
+# --- Core / Web ---
+Django==5.2.7
+djangorestframework==3.16.1
+
+# --- Base de datos ---
 psycopg2-binary==2.9.10
+dj-database-url==3.0.1
+
+# --- Configuración / entorno ---
+python-dotenv==1.1.1
+python-decouple==3.8
+
+# --- Archivos estáticos en producción ---
+whitenoise==6.9.0
+
+# --- Servidor WSGI de producción ---
+gunicorn==23.0.0
+
+# --- Scraping de precios (OMIE) ---
+requests==2.32.5
+beautifulsoup4==4.14.2
+lxml==6.0.2
+
+# --- Utilidades ---
 python-dateutil==2.9.0.post0
-python-dotenv==1.1.0
-requests==2.32.3
-six==1.17.0
-soupsieve==2.7
-sqlparse==0.5.3
-typing_extensions==4.14.0
-urllib3==2.4.0
+urllib3==2.5.0

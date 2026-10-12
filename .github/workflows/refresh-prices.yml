@@ -1,0 +1,26 @@
+name: Refrescar precios de electricidad
+
+# Ejecuta la captura de precios de OMIE una vez al día.
+# Es GRATIS en repositorios públicos (e incluido en la cuota de los privados).
+#
+# Para activarlo necesitas configurar en el repositorio (Settings -> Secrets
+# and variables -> Actions -> New repository secret) estos dos secretos:
+#   APP_URL       -> URL base de tu app desplegada, ej: https://miapp.onrender.com
+#   CRON_SECRET_TOKEN -> el mismo valor que tienes en el .env del servidor
+
+on:
+  schedule:
+    # Todos los días a las 13:10 UTC (~15:10 en España en horario de verano).
+    # OMIE suele publicar los precios del día siguiente a mediodía.
+    - cron: "10 13 * * *"
+  workflow_dispatch: {} # Permite lanzarlo manualmente desde la pestaña Actions
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de refresco
+        run: |
+          curl --fail --show-error --silent \
+            -H "X-Cron-Token: ${{ secrets.CRON_SECRET_TOKEN }}" \
+            "${{ secrets.APP_URL }}/tasks/refresh-prices/" || exit 1

@@ -2,9 +2,9 @@
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from .models import ElectricityPrice # Importa el modelo correctamente
 from django.utils import timezone
-from datetime import datetime, timedelta
+
+from .models import ElectricityPrice
 
 @login_required
 def traffic_light_display(request):

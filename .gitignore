@@ -36,7 +36,13 @@ db_data/  # Si tienes un volumen de Docker que guarda datos directamente en una 
 *.temp
 temp/
 media/  # Si Django guarda archivos subidos aquí en desarrollo
-static/ # Si Django guarda archivos estáticos compilados aquí en desarrollo
+
+# Archivos estáticos recolectados en producción (collectstatic).
+# NO ignoramos static/ porque contiene el manifest PWA, iconos y service worker.
+staticfiles/
+
+# Caché de herramientas locales
+.atl/
 
 # Archivos del sistema operativo
 .DS_Store # macOS

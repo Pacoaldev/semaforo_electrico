@@ -8,8 +8,12 @@ from django.contrib.auth import views as auth_views # Importado para otras vista
 # Importa tus formularios y vistas personalizadas desde tu aplicación users
 from users.forms import CustomAuthenticationForm # Tu formulario de autenticación personalizado
 from users.views import SignUpView, CustomPasswordResetView # Tu vista de registro y la personalizada de restablecimiento
+from .pwa_views import service_worker, health, refresh_prices # Vista PWA, salud y refresco de precios
 
 urlpatterns = [
+    path('health/', health, name='health'), # Endpoint de salud (para despliegue)
+    path('tasks/refresh-prices/', refresh_prices, name='refresh_prices'), # Refresco diario protegido por token
+    path('sw.js', service_worker, name='service_worker'), # PWA: Service Worker en la raíz
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')), # Incluye las URLs de tu app 'users'
     path('electricity/', include('electricity_prices.urls', namespace='electricity')),

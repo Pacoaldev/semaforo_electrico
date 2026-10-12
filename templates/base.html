@@ -1,9 +1,22 @@
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}Semáforo Eléctrico{% endblock %}</title>
+
+    <!-- ===== PWA (Progressive Web App) ===== -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#1a2a4a">
+    <!-- iOS: permitir pantalla completa y mostrar icono en pantalla de inicio -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Semáforo">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'icons/icon-192.png' %}">
+    <!-- ===== Fin PWA ===== -->
+
     <!-- Preconnect para Google Fonts y CDN de Tailwind para carga más rápida -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -199,6 +212,21 @@
         <p class="text-sm"> © {% now "Y" %} Semáforo Eléctrico. Todos los derechos reservados.</p>
         <p class="text-xs text-gray-400 mt-1">Desarrollado con Django y Tailwind CSS por Paco López Alarte</p>
     </footer>
+
+    <!-- ===== PWA: registro del Service Worker ===== -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register("/sw.js", { scope: '/' })
+                    .then(function (reg) {
+                        console.log('[PWA] Service Worker registrado. Scope:', reg.scope);
+                    })
+                    .catch(function (err) {
+                        console.warn('[PWA] Fallo al registrar el Service Worker:', err);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
 

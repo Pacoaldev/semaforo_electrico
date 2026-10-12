@@ -1,0 +1,42 @@
+# Configuración de despliegue para Render.com
+# Documentación: https://render.com/docs/blueprint-spec
+#
+# Al conectar este repositorio en Render, se creará automáticamente:
+#  - Un servicio web (Django + Gunicorn)
+#  - Una base de datos PostgreSQL gestionada
+#
+# IMPORTANTE: define DJANGO_SECRET_KEY en el panel de Render (Environment).
+
+services:
+  - type: web
+    name: semaforo-electrico
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn semaforo_electrico_project.wsgi:application"
+    healthCheckPath: /health/
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: USE_SQLITE
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: semaforo-db
+          property: connectionString
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false # Rellena con tu dominio: miapp.onrender.com
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        sync: false # Rellena con: https://miapp.onrender.com
+      - key: CRON_SECRET_TOKEN
+        generateValue: true # Token que protege /tasks/refresh-prices/
+
+databases:
+  - name: semaforo-db
+    plan: free
+    databaseName: semaforo_db
+    user: semaforo_user

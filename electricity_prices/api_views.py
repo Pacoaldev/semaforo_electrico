@@ -3,10 +3,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.utils import timezone
+from datetime import datetime
+
 from .models import ElectricityPrice
 from .serializers import ElectricityPriceSerializer
-from django.utils import timezone
-from datetime import datetime, timedelta
 
 class CurrentPriceAPIView(APIView):
     """
@@ -50,7 +51,7 @@ class DailyPricesAPIView(APIView):
                 target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
             except ValueError:
                 return Response(
-                    {"message": "Formato de fecha inválido. UsaYYYY-MM-DD."},
+                    {"message": "Formato de fecha inválido. Usa YYYY-MM-DD."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         else:

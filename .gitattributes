@@ -1,0 +1,10 @@
+# Normaliza los finales de línea a LF en el repositorio
+* text=auto eol=lf
+
+# Los scripts de shell deben usar LF siempre
+*.sh text eol=lf
+
+# Los binarios no se tocan
+*.png binary
+*.jpg binary
+*.ico binary
