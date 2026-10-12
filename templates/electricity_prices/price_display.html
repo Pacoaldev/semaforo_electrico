@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load precio_filters %}
 
 {% block title %}Semáforo de Precios{% endblock %}
 
@@ -23,7 +24,7 @@
                      style="top: 0.5rem;">
                     <div class="text-[10px] font-bold tracking-wider opacity-90">AHORA</div>
                     <div class="text-lg font-extrabold leading-tight">{{ current_hour }}:00</div>
-                    <div class="text-[11px] font-medium opacity-90">{{ current_price_data.price }} €/kWh</div>
+                    <div class="text-[11px] font-medium opacity-90">{{ current_price_fmt }} €/kWh</div>
                     <div class="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 bg-red-600 rotate-45"></div>
                 </div>
                 {% endif %}
@@ -38,7 +39,7 @@
                             {% else %}bg-gray-300{% endif %}
                             {% if p.hour == current_hour %}ring-2 ring-gray-900 outline outline-2 outline-white{% endif %}"
                             data-hour="{{ p.hour }}"
-                            title="{{ p.hour }}:00 - {{ p.price }} €/kWh">
+                            title="{{ p.hour }}:00 - {{ p.price|precio_es }} €/kWh">
                         </div>
                     {% endfor %}
                 </div>
