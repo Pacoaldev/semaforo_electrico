@@ -4,10 +4,11 @@
  *  - Precachea el "app shell" (manifest + iconos) al instalar.
  *  - Navegación (HTML): network-first con fallback a caché (para ver algo offline).
  *  - API / datos: network-first, sin cachear respuestas de precios (siempre frescos).
- *  - Estáticos (CSS/JS/imágenes): cache-first.
+ *  - Estáticos (CSS/JS/imágenes): stale-while-revalidate (sirve rápido y
+ *    actualiza en segundo plano, para no quedarse con versiones viejas).
  */
 
-const CACHE_VERSION = 'semaforo-v1';
+const CACHE_VERSION = 'semaforo-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 
@@ -39,6 +40,13 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Mensaje desde la página: forzar activación inmediata de una versión nueva.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
@@ -64,19 +72,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Archivos estáticos: cache-first.
+  // Archivos estáticos: stale-while-revalidate.
+  // Se sirve la copia en caché (rápido) y, en paralelo, se pide a la red para
+  // actualizar la caché de cara a la próxima visita. Evita quedarse "pegado"
+  // a versiones antiguas de CSS/JS.
   if (url.pathname.startsWith('/static/')) {
     event.respondWith(
-      caches.match(request).then((cached) => {
-        return (
-          cached ||
-          fetch(request).then((response) => {
-            const copy = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => cache.put(request, copy));
-            return response;
-          })
-        );
-      })
+      caches.open(STATIC_CACHE).then((cache) =>
+        cache.match(request).then((cached) => {
+          const networkFetch = fetch(request)
+            .then((response) => {
+              cache.put(request, response.clone());
+              return response;
+            })
+            .catch(() => cached);
+          return cached || networkFetch;
+        })
+      )
     );
     return;
   }

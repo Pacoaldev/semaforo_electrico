@@ -15,45 +15,77 @@
         </div>
 
         <!-- Gráfico de barras horario -->
-        <div class="relative px-6 pt-16 pb-4" id="chart-wrapper">
+        <div class="relative px-6 pb-4" id="chart-wrapper">
             {% if day_prices %}
-                <!-- Etiqueta flotante "AHORA" (posicionada con JS) -->
-                {% if current_price_data %}
-                <div id="now-tooltip"
-                     class="absolute z-20 -translate-x-1/2 transition-all duration-300 bg-red-600 text-white rounded-xl shadow-2xl px-3 py-2 text-center pointer-events-none"
-                     style="top: 0.5rem;">
-                    <div class="text-[10px] font-bold tracking-wider opacity-90">AHORA</div>
-                    <div class="text-lg font-extrabold leading-tight">{{ current_hour }}:00</div>
-                    <div class="text-[11px] font-medium opacity-90">{{ current_price_fmt }} €/kWh</div>
-                    <div class="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 bg-red-600 rotate-45"></div>
+                <!-- Carril superior reservado: el marcador "AHORA" vive aquí, nunca
+                     se solapa con las barras. JS le da left + ancho de la aguja. -->
+                <div class="relative h-14 mb-2" id="marker-lane">
+                    {% if current_price_data %}
+                    <div id="now-marker"
+                         class="absolute top-0 flex flex-col items-center pointer-events-none"
+                         style="left: 50%;">
+                        <!-- Bocadillo: se desplaza para no salirse de la pantalla -->
+                        <div id="now-bubble" class="rounded-lg shadow-lg px-2.5 py-1 text-center whitespace-nowrap max-w-[80vw] overflow-hidden text-ellipsis
+                            {% if status_color == 'dark-green' %}bg-green-700 text-white
+                            {% elif status_color == 'green' %}bg-green-500 text-white
+                            {% elif status_color == 'yellow' %}bg-amber-400 text-slate-900
+                            {% elif status_color == 'red' %}bg-red-500 text-white
+                            {% else %}bg-slate-600 text-white{% endif %}">
+                            <span class="text-[10px] font-bold tracking-wider uppercase opacity-80">Ahora</span>
+                            <span class="text-sm font-extrabold tabular-nums ml-1">{{ current_hour }}:00</span>
+                            <span class="text-[11px] font-medium ml-1 opacity-90">{{ current_price_fmt }} €/kWh</span>
+                        </div>
+                        <!-- Aguja: punto fijo que SIEMPRE apunta a la barra actual -->
+                        <div id="now-needle" class="flex flex-col items-center">
+                            <div class="w-px h-4
+                                {% if status_color == 'dark-green' %}bg-green-700
+                                {% elif status_color == 'green' %}bg-green-500
+                                {% elif status_color == 'yellow' %}bg-amber-400
+                                {% elif status_color == 'red' %}bg-red-500
+                                {% else %}bg-slate-600{% endif %}"></div>
+                            <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px]
+                                {% if status_color == 'dark-green' %}border-t-green-700
+                                {% elif status_color == 'green' %}border-t-green-500
+                                {% elif status_color == 'yellow' %}border-t-amber-400
+                                {% elif status_color == 'red' %}border-t-red-500
+                                {% else %}border-t-slate-600{% endif %}"></div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
 
-                <!-- Barras -->
-                <div class="flex items-end gap-[3px] h-16">
+                <!-- Barras + hora exacta debajo de cada una -->
+                <div class="flex items-stretch gap-[3px] h-20">
                     {% for p in day_prices %}
-                        <div class="price-bar relative flex-1 h-full rounded-md transition-transform hover:-translate-y-1
-                            {% if p.status == 'green' %}bg-green-500
-                            {% elif p.status == 'yellow' %}bg-amber-400
-                            {% elif p.status == 'red' %}bg-red-500
-                            {% else %}bg-gray-300{% endif %}
-                            {% if p.hour == current_hour %}ring-2 ring-gray-900 outline outline-2 outline-white{% endif %}"
-                            data-hour="{{ p.hour }}"
-                            title="{{ p.hour }}:00 - {{ p.price|precio_es }} €/kWh">
+                        <div class="price-col flex-1 flex flex-col h-full">
+                            <div class="price-bar flex-1 rounded-md transition-transform hover:-translate-y-1
+                                {% if p.status == 'dark-green' %}bg-green-700
+                                {% elif p.status == 'green' %}bg-green-500
+                                {% elif p.status == 'yellow' %}bg-amber-400
+                                {% elif p.status == 'red' %}bg-red-500
+                                {% else %}bg-gray-300{% endif %}"
+                                data-hour="{{ p.hour }}"
+                                title="{{ p.hour }}:00 - {{ p.price|precio_es }} €/kWh">
+                            </div>
+                            <span class="text-[9px] sm:text-[10px] text-center text-gray-400 tabular-nums mt-1
+                                {% if p.hour == current_hour %}font-bold text-slate-700{% endif %}">{{ p.hour|stringformat:"02d" }}</span>
                         </div>
                     {% endfor %}
                 </div>
 
-                <!-- Leyenda -->
-                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 mt-4 text-xs text-gray-600">
+                <!-- Leyenda (tramos calibrados al precio de mercado OMIE, sin impuestos) -->
+                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 text-xs text-gray-600 border-t border-gray-100 pt-3">
                     <span class="inline-flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full bg-green-500"></span> Barato (&lt; 0,10 €/kWh)
+                        <span class="w-3 h-3 rounded-full bg-green-700"></span> Muy barato (&lt; 0,08 €/kWh)
                     </span>
                     <span class="inline-flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full bg-amber-400"></span> Medio (0,10 - 0,20 €/kWh)
+                        <span class="w-3 h-3 rounded-full bg-green-500"></span> Barato (0,08 - 0,13 €/kWh)
                     </span>
                     <span class="inline-flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full bg-red-500"></span> Caro (&gt; 0,20 €/kWh)
+                        <span class="w-3 h-3 rounded-full bg-amber-400"></span> Medio (0,13 - 0,19 €/kWh)
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-red-500"></span> Caro (&gt; 0,19 €/kWh)
                     </span>
                 </div>
             {% else %}
@@ -62,50 +94,109 @@
         </div>
     </div>
 
-    <!-- ===== Tarjeta: semáforo grande (estado actual) ===== -->
-    <div class="traffic-light-container bg-white">
-        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Estado actual</h2>
-        <div class="traffic-light-circle {% if status_color == 'green' %}bg-green{% elif status_color == 'yellow' %}bg-yellow{% elif status_color == 'red' %}bg-red{% else %}bg-gray{% endif %}"></div>
-        <p class="text-xl font-semibold text-gray-800 mb-2">{{ message }}</p>
+    <!-- ===== Franja compacta: estado actual (sin duplicar el gráfico) ===== -->
+    <div class="bg-white rounded-2xl shadow-xl px-5 py-4 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <div class="w-14 h-14 shrink-0 rounded-full border-4 border-slate-200 shadow-inner
+                    {% if status_color == 'dark-green' %}bg-green-700
+                    {% elif status_color == 'green' %}bg-green
+                    {% elif status_color == 'yellow' %}bg-yellow
+                    {% elif status_color == 'red' %}bg-red
+                    {% else %}bg-gray{% endif %}"></div>
 
-        {% if day_prices %}
-            <div class="mt-2 flex flex-col sm:flex-row justify-center gap-4 text-sm">
-                {% if cheapest_hour is not None %}
-                <span class="inline-flex items-center gap-1.5 text-green-700 font-medium">
-                    <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                    Hora más barata: {{ cheapest_hour }}:00
+        <div class="min-w-0">
+            <div class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Estado actual</div>
+            <div class="flex items-baseline gap-2 flex-wrap">
+                <span class="text-2xl font-extrabold text-gray-800 tabular-nums">{{ current_price_fmt }}<span class="text-sm font-medium text-gray-400"> €/kWh</span></span>
+                <span class="text-sm text-gray-500 tabular-nums">{{ current_hour }}:00</span>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold
+                    {% if status_color == 'dark-green' %}bg-green-200 text-green-900
+                    {% elif status_color == 'green' %}bg-green-100 text-green-800
+                    {% elif status_color == 'yellow' %}bg-amber-100 text-amber-800
+                    {% elif status_color == 'red' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                    {% if status_color == 'dark-green' %}Muy barato
+                    {% elif status_color == 'green' %}Barato
+                    {% elif status_color == 'yellow' %}Medio
+                    {% elif status_color == 'red' %}Caro
+                    {% else %}Sin datos{% endif %}
                 </span>
-                {% endif %}
             </div>
-            <p class="text-xs text-gray-400 mt-4">
-                Los colores se asignan por tramos: verde &lt; 0,10 €/kWh · amarillo 0,10–0,20 €/kWh · rojo &gt; 0,20 €/kWh.
-            </p>
-        {% elif latest_date %}
-            <p class="text-sm text-amber-700 mt-3">
-                Últimos datos disponibles: {{ latest_date|date:"d/m/Y" }}. Se actualizarán automáticamente.
-            </p>
-        {% endif %}
+        </div>
 
-        <div class="mt-6 text-center">
-            <a href="{% url 'electricity:api_daily_prices' %}" target="_blank"
-               class="text-blue-600 hover:underline text-sm font-medium">Ver todos los precios del día (JSON)</a>
+        <div class="ml-auto text-right">
+            {% if day_prices and cheapest_hour is not None %}
+                <div class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Más barata hoy</div>
+                <div class="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 tabular-nums">
+                    <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>{{ cheapest_hour }}:00
+                </div>
+            {% elif latest_date %}
+                <div class="text-xs text-amber-700 max-w-[14rem]">
+                    Últimos datos: {{ latest_date|date:"d/m/Y" }}. Se actualizarán automáticamente.
+                </div>
+            {% endif %}
+            <div class="mt-1">
+                <a href="{% url 'electricity:api_daily_prices' %}" target="_blank"
+                   class="text-blue-600 hover:underline text-xs font-medium">Ver precios del día (JSON)</a>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Posiciona la etiqueta "AHORA" encima de la barra de la hora actual.
+    // Posiciona el marcador "AHORA" sobre la barra de la hora actual.
+    //
+    // El marcador (contenedor) se centra SIEMPRE en su barra y contiene la aguja,
+    // que por tanto apunta siempre a la barra correcta. El bocadillo de texto es
+    // independiente: si al estar centrado se saldría de la pantalla (típico en
+    // móvil, horas cercanas a las 00 h o 23 h), se desplaza horizontalmente lo
+    // justo para quedar visible, sin mover la aguja.
     (function () {
-        const tooltip = document.getElementById('now-tooltip');
         const wrapper = document.getElementById('chart-wrapper');
-        if (!tooltip || !wrapper) return;
+        const lane = document.getElementById('marker-lane');
+        const marker = document.getElementById('now-marker');
+        const bubble = document.getElementById('now-bubble');
+        if (!wrapper || !lane || !marker || !bubble) return;
 
-        const hour = {{ current_hour|default:"null" }};
-        const bar = wrapper.querySelector('.price-bar[data-hour="' + hour + '"]');
-        if (!bar) { tooltip.style.display = 'none'; return; }
+        const currentHour = {{ current_hour|default:"null" }};
+        if (currentHour === null) return;
 
-        const center = bar.offsetLeft + bar.offsetWidth / 2;
-        tooltip.style.left = center + 'px';
+        function positionMarker() {
+            const bar = wrapper.querySelector('.price-bar[data-hour="' + currentHour + '"]');
+            if (!bar) { marker.style.display = 'none'; return; }
+
+            // El marcador es 'absolute' dentro de #marker-lane, así que su 'left'
+            // se mide respecto a ese carril. Medimos todo contra él para evitar
+            // desfases por padding (px-6) o por el offsetParent.
+            const laneRect = lane.getBoundingClientRect();
+            const barRect = bar.getBoundingClientRect();
+
+            // Centro de la barra, en px relativo al borde izquierdo del carril.
+            const barCenter = (barRect.left - laneRect.left) + barRect.width / 2;
+
+            // --- 1) Ancla: centramos el marcador (y su aguja) en la barra actual.
+            marker.style.left = barCenter + 'px';
+            marker.style.transform = 'translateX(-50%)';
+
+            // --- 2) Bocadillo: lo desplazamos para que no se salga del gráfico.
+            // Reseteamos el desplazamiento para medir su ancho natural.
+            bubble.style.transform = 'translateX(0px)';
+            const bubbleWidth = bubble.offsetWidth;
+
+            const minCenter = bubbleWidth / 2 + 4;
+            const maxCenter = laneRect.width - bubbleWidth / 2 - 4;
+
+            let targetCenter = barCenter;
+            if (maxCenter > minCenter) {
+                targetCenter = Math.max(minCenter, Math.min(maxCenter, barCenter));
+            }
+
+            // Desplazamiento a aplicar SOLO al bocadillo (la aguja no se mueve).
+            const shift = targetCenter - barCenter;
+            bubble.style.transform = 'translateX(' + shift + 'px)';
+        }
+
+        positionMarker();
+        window.addEventListener('resize', positionMarker);
     })();
 </script>
 {% endblock %}

@@ -63,17 +63,70 @@
         .navbar:hover {
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
         }
+        /*
+         * NOTA: Tailwind Play CDN (cdn.tailwindcss.com) NO procesa reglas @apply
+         * escritas en un <style> inline. Por eso estas clases se definen como CSS
+         * plano equivalente (mismos valores que generaría Tailwind).
+         */
+        /* Los inputs nativos heredan el color claro del body sobre fondo blanco,
+           así que forzamos siempre un color de texto oscuro legible. */
+        input,
+        textarea,
+        select {
+            color: #1f2937; /* gray-800 */
+        }
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af; /* gray-400 */
+        }
+
         .btn {
-            @apply px-6 py-2.5 rounded-xl font-semibold transition duration-300 ease-in-out transform hover:scale-105;
+            display: inline-block;
+            padding: 0.625rem 1.5rem; /* py-2.5 px-6 */
+            border-radius: 0.75rem;   /* rounded-xl */
+            font-weight: 600;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: scale(1.05);
         }
         .btn-primary {
-            @apply bg-blue-700 text-white shadow-lg hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75;
+            background-color: #1d4ed8; /* blue-700 */
+            color: #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background-color: #1e40af; /* blue-800 */
+        }
+        .btn-primary:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.75);
         }
         .btn-secondary {
-            @apply bg-gray-700 text-gray-200 shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75;
+            background-color: #374151; /* gray-700 */
+            color: #e5e7eb;            /* gray-200 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563; /* gray-600 */
         }
         .form-input {
-            @apply border border-gray-600 rounded-lg p-3 w-full bg-gray-800 text-gray-100 focus:ring-blue-500 focus:border-blue-500 shadow-sm placeholder-gray-400;
+            border: 1px solid #4b5563; /* gray-600 */
+            border-radius: 0.5rem;     /* rounded-lg */
+            padding: 0.75rem;          /* p-3 */
+            width: 100%;
+            background-color: #1f2937; /* gray-800 */
+            color: #f3f4f6;            /* gray-100 */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .form-input::placeholder {
+            color: #9ca3af; /* gray-400 */
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6; /* blue-500 */
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
         }
         /* Estilos mejorados para el semáforo */
         .traffic-light-container {
@@ -122,13 +175,17 @@
             color: #2d3748;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .alert-success { @apply bg-green-100 text-green-800 border-green-200; }
-        .alert-error { @apply bg-red-100 text-red-800 border-red-200; }
-        .alert-info { @apply bg-blue-100 text-blue-800 border-blue-200; }
+        .alert-success { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .alert-error { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .alert-info { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
 
         /* Estilo para los enlaces de texto */
         .text-link {
-            @apply text-blue-400 hover:text-blue-200 transition duration-200 ease-in-out;
+            color: #60a5fa; /* blue-400 */
+            transition: color 0.2s ease-in-out;
+        }
+        .text-link:hover {
+            color: #bfdbfe; /* blue-200 */
         }
 
         /* Estilos específicos para la tarjeta de autenticación */
@@ -149,19 +206,43 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
         .auth-card h2 {
-            @apply text-4xl font-extrabold text-blue-400 mb-6 text-center;
+            font-size: 2.25rem;   /* text-4xl */
+            line-height: 2.5rem;
+            font-weight: 800;
+            color: #60a5fa;       /* blue-400 */
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
         .auth-card label {
-            @apply block text-sm font-medium text-gray-300 mb-2;
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #d1d5db;       /* gray-300 */
+            margin-bottom: 0.5rem;
         }
         .auth-card .form-input {
-            @apply bg-gray-900 border-gray-700 text-gray-100 placeholder-gray-500 focus:ring-blue-600 focus:border-blue-600;
+            background-color: #111827; /* gray-900 */
+            border-color: #374151;     /* gray-700 */
+            color: #f3f4f6;            /* gray-100 */
+        }
+        .auth-card .form-input::placeholder {
+            color: #6b7280; /* gray-500 */
+        }
+        .auth-card .form-input:focus {
+            border-color: #2563eb; /* blue-600 */
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5);
         }
         .auth-card .btn-primary {
-            @apply bg-blue-700 hover:bg-blue-800;
+            background-color: #1d4ed8; /* blue-700 */
+        }
+        .auth-card .btn-primary:hover {
+            background-color: #1e40af; /* blue-800 */
         }
         .auth-card .text-sm a {
-            @apply text-blue-400 hover:text-blue-300;
+            color: #60a5fa; /* blue-400 */
+        }
+        .auth-card .text-sm a:hover {
+            color: #93c5fd; /* blue-300 */
         }
 
         /* Responsive adjustments for messages */
@@ -220,10 +301,31 @@
                 navigator.serviceWorker.register("/sw.js", { scope: '/' })
                     .then(function (reg) {
                         console.log('[PWA] Service Worker registrado. Scope:', reg.scope);
+
+                        // Si hay una versión nueva del SW esperando, actívala ya.
+                        reg.addEventListener('updatefound', function () {
+                            const nuevo = reg.installing;
+                            if (!nuevo) return;
+                            nuevo.addEventListener('statechange', function () {
+                                if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('[PWA] Nueva versión disponible; activando...');
+                                    nuevo.postMessage({ type: 'SKIP_WAITING' });
+                                }
+                            });
+                        });
                     })
                     .catch(function (err) {
                         console.warn('[PWA] Fallo al registrar el Service Worker:', err);
                     });
+
+                // Cuando el SW nuevo toma el control, recarga una vez para
+                // evitar mezclar HTML/CSS de versiones distintas.
+                let reloading = false;
+                navigator.serviceWorker.addEventListener('controllerchange', function () {
+                    if (reloading) return;
+                    reloading = true;
+                    window.location.reload();
+                });
             });
         }
     </script>

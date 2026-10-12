@@ -25,13 +25,24 @@ from django.utils import timezone
 
 from electricity_prices.models import ElectricityPrice
 
-# Umbrales del semáforo (€/kWh)
-PRICE_GREEN_MAX = 0.10  # < 0.10 -> verde
-PRICE_YELLOW_MAX = 0.20  # 0.10 - 0.20 -> amarillo ; >= 0.20 -> rojo
+# Umbrales del semáforo (€/kWh).
+#
+# IMPORTANTE: estos precios son de MERCADO (OMIE), SIN impuestos ni peajes.
+# No confundir con el PVPC final que paga el consumidor (que ronda 0,15-0,28).
+# Escala calibrada a la serie real de OMIE:
+#   < 0.08        -> 'dark-green' (muy barato)
+#   0.08 - 0.13   -> 'green'      (barato)
+#   0.13 - 0.19   -> 'yellow'     (medio)
+#   >= 0.19       -> 'red'        (caro)
+PRICE_DARKGREEN_MAX = 0.08   # < 0.08 -> dark-green
+PRICE_GREEN_MAX = 0.13       # 0.08 - 0.13 -> green
+PRICE_YELLOW_MAX = 0.19      # 0.13 - 0.19 -> yellow ; >= 0.19 -> red
 
 
 def classify_status(price_kwh: float) -> str:
-    """Devuelve el color del semáforo para un precio en €/kWh."""
+    """Devuelve el color del semáforo para un precio de mercado en €/kWh."""
+    if price_kwh < PRICE_DARKGREEN_MAX:
+        return "dark-green"
     if price_kwh < PRICE_GREEN_MAX:
         return "green"
     if price_kwh < PRICE_YELLOW_MAX:
