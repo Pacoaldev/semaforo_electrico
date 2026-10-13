@@ -3,11 +3,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.conf import settings
 from django.utils import timezone
 from datetime import datetime
 
 from .models import ElectricityPrice
 from .serializers import ElectricityPriceSerializer
+from .services import refresh_if_needed
 
 class CurrentPriceAPIView(APIView):
     """
@@ -17,6 +19,13 @@ class CurrentPriceAPIView(APIView):
         now = timezone.localtime(timezone.now())
         today = now.date()
         current_hour = now.hour
+
+        # Auto-refresco: igual que en la vista web, si no hay datos de hoy se
+        # intenta traerlos (una vez por hora como máximo, según el lock).
+        if settings.AUTO_REFRESH_PRICES and not ElectricityPrice.objects.filter(
+            date=today
+        ).exists():
+            refresh_if_needed(today=today, background=False)
 
         try:
             # Intenta obtener el precio de la hora actual

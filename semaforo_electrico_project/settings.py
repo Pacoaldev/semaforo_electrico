@@ -198,6 +198,27 @@ LOGIN_URL = "login"
 CRON_SECRET_TOKEN = os.getenv("CRON_SECRET_TOKEN", "")
 
 
+# --- Caché (usada para el "auto-refresco" de precios) -----------------------
+# LocMem por defecto: suficiente para el lock diario del auto-refresco.
+# En Render con varios workers cada proceso tendría su propio LocMem, pero el
+# lock solo evita ráfagas dentro del mismo worker; el update_or_create de
+# fetch_prices es idempotente, así que no hay riesgo de datos duplicados.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "semaforo-electrico-cache",
+    }
+}
+
+
+# --- Auto-refresco de precios -----------------------------------------------
+# Si al abrir la app no hay datos de precios para el día de hoy, se lanza
+# fetch_prices automáticamente (con un lock para no repetirlo más de una vez por
+# hora). Esto evita depender exclusivamente del cron externo (GitHub Actions),
+# que no es fiable.
+AUTO_REFRESH_PRICES = env_bool("AUTO_REFRESH_PRICES", default=True)
+
+
 # --- Email ------------------------------------------------------------------
 EMAIL_BACKEND = os.getenv(
     "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"

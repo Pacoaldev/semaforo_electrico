@@ -54,24 +54,40 @@
                     {% endif %}
                 </div>
 
-                <!-- Barras + hora exacta debajo de cada una -->
-                <div class="flex items-stretch gap-[3px] h-20">
-                    {% for p in day_prices %}
-                        <div class="price-col flex-1 flex flex-col h-full">
-                            <div class="price-bar flex-1 rounded-md transition-transform hover:-translate-y-1
-                                {% if p.status == 'dark-green' %}bg-green-700
-                                {% elif p.status == 'green' %}bg-green-500
-                                {% elif p.status == 'yellow' %}bg-amber-400
-                                {% elif p.status == 'red' %}bg-red-500
-                                {% else %}bg-gray-300{% endif %}"
-                                data-hour="{{ p.hour }}"
-                                title="{{ p.hour }}:00 - {{ p.price|precio_es }} €/kWh">
+                <!-- Barras + hora debajo de cada una.
+                     Las horas van en posicionamiento ABSOLUTO para que la etiqueta
+                     no ensanche la columna (si no, en móvil la última barra se
+                     sale del contenedor y se corta). En móvil solo se muestran las
+                     horas pares (00, 02, 04...) para que no se solapen; en pantallas
+                     grandes se muestran todas. -->
+                <div class="relative">
+                    <div class="flex items-stretch gap-[2px] h-20">
+                        {% for p in day_prices %}
+                            <div class="price-col relative flex-1 min-w-0 flex flex-col h-full">
+                                <div class="price-bar flex-1 rounded-md transition-transform hover:-translate-y-1
+                                    {% if p.status == 'dark-green' %}bg-green-700
+                                    {% elif p.status == 'green' %}bg-green-500
+                                    {% elif p.status == 'yellow' %}bg-amber-400
+                                    {% elif p.status == 'red' %}bg-red-500
+                                    {% else %}bg-gray-300{% endif %}"
+                                    data-hour="{{ p.hour }}"
+                                    title="{{ p.hour }}:00 - {{ p.price|precio_es }} €/kWh">
+                                </div>
                             </div>
-                            <span class="text-[9px] sm:text-[10px] text-center text-gray-400 tabular-nums mt-1
-                                {% if p.hour == current_hour %}font-bold text-slate-700{% endif %}">{{ p.hour|stringformat:"02d" }}</span>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Fila de etiquetas de hora (posicionadas por JS sobre su barra) -->
+                    <div class="relative h-4 mt-1" id="hour-labels">
+                        {% for p in day_prices %}
+                            <span class="absolute top-0 -translate-x-1/2 text-[9px] sm:text-[10px] text-gray-400 tabular-nums
+                                {% if p.hour|divisibleby:2 %}{% else %}hidden sm:block{% endif %}
+                                {% if p.hour == current_hour %}font-bold text-slate-700{% endif %}"
+                                data-label-hour="{{ p.hour }}">{{ p.hour|stringformat:"02d" }}</span>
+                        {% endfor %}
+                    </div>
                 </div>
+
 
                 <!-- Leyenda (tramos calibrados al precio de mercado OMIE, sin impuestos) -->
                 <div class="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 text-xs text-gray-600 border-t border-gray-100 pt-3">
@@ -197,6 +213,32 @@
 
         positionMarker();
         window.addEventListener('resize', positionMarker);
+    })();
+
+    // Alinea cada etiqueta de hora con el centro de su barra.
+    //
+    // Las etiquetas son 'absolute' (no ensanchan su columna), así que hay que
+    // situarlas por JS. Se miden contra #hour-labels (su offsetParent) para
+    // evitar desfases por padding.
+    (function () {
+        const wrapper = document.getElementById('chart-wrapper');
+        const labelsRow = document.getElementById('hour-labels');
+        if (!wrapper || !labelsRow) return;
+
+        function positionLabels() {
+            const rowRect = labelsRow.getBoundingClientRect();
+            labelsRow.querySelectorAll('[data-label-hour]').forEach(function (label) {
+                const hour = label.dataset.labelHour;
+                const bar = wrapper.querySelector('.price-bar[data-hour="' + hour + '"]');
+                if (!bar) return;
+                const barRect = bar.getBoundingClientRect();
+                const barCenter = (barRect.left - rowRect.left) + barRect.width / 2;
+                label.style.left = barCenter + 'px';
+            });
+        }
+
+        positionLabels();
+        window.addEventListener('resize', positionLabels);
     })();
 </script>
 {% endblock %}

@@ -2,11 +2,13 @@
 
 from decimal import Decimal, InvalidOperation
 
+from django.conf import settings
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
 from .models import ElectricityPrice
+from .services import refresh_if_needed
 
 
 def format_precio_es(value, decimales=5) -> str:
@@ -31,6 +33,16 @@ def traffic_light_display(request):
     now = timezone.localtime(timezone.now())
     today = now.date()
     current_hour = now.hour
+
+    # Auto-refresco: si no hay datos de HOY, lánzalos ahora (una vez por hora
+    # como máximo, según el lock). Se hace de forma SÍNCRONA en la primera carga
+    # del día para que el usuario vea los precios al instante; en cargas
+    # posteriores no vuelve a ejecutarse y cualquier fallo se registra sin romper
+    # la vista.
+    if settings.AUTO_REFRESH_PRICES and not ElectricityPrice.objects.filter(
+        date=today
+    ).exists():
+        refresh_if_needed(today=today, background=False)
 
     current_price_data = None
     current_price_fmt = ""
